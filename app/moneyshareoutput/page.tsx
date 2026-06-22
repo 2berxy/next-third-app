@@ -4,16 +4,42 @@ import Image from "next/image";
 import imgmoney from "@/assets/images/imgmoney.png";
 import Footer from "@/components/Footer";
 import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense } from "react"; // 💡 1. เพิ่มการ Import Suspense
 
-export default function Page() {
+// 💡 2. แยกส่วนที่ดึงค่าและแสดงผลลัพธ์ออกมาเป็น Component ย่อย
+function OutputResult() {
   const router = useRouter();
-
-  //นำค่าที่ส่งมาจากหน้าแรกมาเก็บไว้ในตัวแปร
   const searchParams = useSearchParams();
+  
   const money = searchParams.get("money");
   const people = searchParams.get("people");
   const moneyShare = searchParams.get("moneyShare");
 
+  return (
+    <div className="mt-10 w-3/5 px-10 border border-gray-300 rounded-lg shadow-md py-8">
+      <p className="text-lg font-medium text-gray-700 mb-2 text-center">
+        จำนวนเงินที่ป้อน: {parseFloat(money || '0').toFixed(2)} บาท
+      </p>
+      <p className="text-lg font-medium text-gray-700 mb-2 text-center">
+        จำนวนคนที่ป้อน: {people || '0'} คน
+      </p>
+      <p className="text-lg font-medium text-gray-700 mb-2 text-center">
+        เงินที่ต้องแชร์กัน: {parseFloat(moneyShare || '0').toFixed(2)} บาท/คน
+      </p>     
+
+      {/* ปุ่มย้อนกลับ */}
+      <button
+        onClick={() => router.back()}
+        className="mt-6 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mx-auto block"
+      >
+        ย้อนกลับ
+      </button> 
+    </div>
+  );
+}
+
+// 💡 3. ฟังก์ชันหลัก (Page) จะไม่มี useSearchParams อยู่ข้างในตัวมันเองแล้ว
+export default function Page() {
   return (
     <div className="flex flex-col items-center w-full">
       {/* ส่วนชื่อเว็บ */}
@@ -29,27 +55,10 @@ export default function Page() {
       {/* ส่วนแสดงรูป */}
       <Image src={imgmoney} alt="Money Image" className="mt-10 w-50" />
 
-      {/* ส่วนของการแสดงผลลัพธ์ */}
-      <div className="mt-10 w-3/5 px-10 border border-gray-300 rounded-lg shadow-md py-8">
-        <p className="text-lg font-medium text-gray-700 mb-2 text-center">
-          จำนวนเงินที่ป้อน: {parseFloat(money || '0').toFixed(2)} บาท
-        </p>
-        <p className="text-lg font-medium text-gray-700 mb-2 text-center">
-          จำนวนคนที่ป้อน: {people} คน
-        </p>
-        <p className="text-lg font-medium text-gray-700 mb-2 text-center">
-          เงินที่ต้องแชร์กัน: {parseFloat(moneyShare || '0').toFixed(2)} บาท/คน
-        </p>     
-
-        {/* ปุ่มย้อนกลับ */}
-        <button
-          onClick={() => router.back()}
-          className="mt-6 bg-blue-500 hover:bg-blue-700
-                   text-white font-bold py-2 px-4 rounded mx-auto block"
-          >
-          ย้อนกลับ
-        </button> 
-      </div>
+      {/* 💡 4. เอา Component ย่อยที่แยกไว้มาครอบด้วย Suspense ตรงนี้ */}
+      <Suspense fallback={<p className="text-center mt-10 text-lg text-gray-500">กำลังโหลดผลลัพธ์...</p>}>
+        <OutputResult />
+      </Suspense>
 
       {/* Footer */}
       <Footer />
